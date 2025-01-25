@@ -3,12 +3,23 @@ const User = require('../models/User');
 
 // Add Cost Item
 exports.addCost = async (req, res) => {
+  console.log("Received POST request data:", req.body);
+
   try {
-    const { description, category, userid, sum, date } = req.body;
+    const { description, category, userid, sum } = req.body;
+    const date = req.body.date || new Date(); // Use the provided date or default to current date/time
+
+    if (!description || !category || !userid || !sum) {
+      return res.status(400).json({ error: "Missing required fields: description, category, userid, or sum" });
+    }
+
     const cost = new Cost({ description, category, userid, sum, date });
+
     const savedCost = await cost.save();
+
     res.status(201).json(savedCost);
   } catch (error) {
+    console.error("Error adding cost item:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -16,7 +27,9 @@ exports.addCost = async (req, res) => {
 // Get Monthly Report
 exports.getMonthlyReport = async (req, res) => {
   const { id, year, month } = req.query;
+
   try {
+    // Fetch the costs for the given user, year, and month
     const costs = await Cost.find({
       userid: id,
       date: {
@@ -24,11 +37,40 @@ exports.getMonthlyReport = async (req, res) => {
         $lt: new Date(year, month, 1),
       },
     });
-    res.status(200).json(costs);
+
+    // Group costs by category
+    const groupedCosts = costs.reduce((result, cost) => {
+      const key = cost.category;
+
+      if (!result[key]) {
+        result[key] = {
+          category: cost.category,
+          userid: cost.userid,
+          totalAmount: 0,
+          items: [],
+        };
+      }
+
+      result[key].totalAmount += cost.sum;
+      result[key].items.push({
+        description: cost.description,
+        sum: cost.sum,
+        date: cost.date,
+      });
+
+      return result;
+    }, {});
+
+    // Convert the grouped costs object to an array
+    const response = Object.values(groupedCosts);
+
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 // Get User Details
 exports.getUserDetails = async (req, res) => {
