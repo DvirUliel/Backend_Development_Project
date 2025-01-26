@@ -1,47 +1,37 @@
 const Cost = require('../models/Cost');
 const User = require('../models/User');
 
-// Add Cost Item
-exports.addCost = async (req, res) => {
-  console.log("Received POST request data:", req.body);
-
-  try {
-    const { description, category, userid, sum } = req.body;
-    const date = req.body.date || new Date(); // Use the provided date or default to current date/time
-
-    if (!description || !category || !userid || !sum) {
-      return res.status(400).json({ error: "Missing required fields: description, category, userid, or sum" });
-    }
-
-    const cost = new Cost({ description, category, userid, sum, date });
-
-    const savedCost = await cost.save();
-
-    res.status(201).json(savedCost);
-  } catch (error) {
-    console.error("Error adding cost item:", error.message);
-    res.status(500).json({ error: error.message });
+// Using a computed design pattern with class that's computed properties with caching
+class ComputedCostHandler {
+  constructor() {
+    this.costsCache = null; 
+    this.totalCostCache = null; 
   }
-};
 
-// Get Monthly Report
-exports.getMonthlyReport = async (req, res) => {
-  const { id, year, month } = req.query;
+  // Load costs and reset caches
+  async loadCosts(userId, filter = {}) {
+    // Loading an array of data in memory
+    this.costsCache = await Cost.find({ userid: userId, ...filter }); 
 
-  try {
-    // Fetch the costs for the given user, year, and month
-    const costs = await Cost.find({
-      userid: id,
-      date: {
-        $gte: new Date(year, month - 1, 1),
-        $lt: new Date(year, month, 1),
-      },
-    });
+    // Invalidate cache for total cost
+    this.totalCostCache = null; 
+  }
 
-    // Group costs by category
-    const groupedCosts = costs.reduce((result, cost) => {
+  // Computed property for total cost
+  get totalCost() {
+    if (this.totalCostCache === null) {
+      // run over the costCache and sum all
+      this.totalCostCache = this.costsCache.reduce((sum, cost) => sum + cost.sum, 0);
+    }
+    return this.totalCostCache;
+  }
+
+  // Computed property for grouped costs
+  get groupedCosts() {
+    return this.costsCache.reduce((result, cost) => {
       const key = cost.category;
 
+      //Using a bucket design pattern
       if (!result[key]) {
         result[key] = {
           category: cost.category,
@@ -60,8 +50,47 @@ exports.getMonthlyReport = async (req, res) => {
 
       return result;
     }, {});
+  }
+}
 
-    // Convert the grouped costs object to an array
+// Add Cost Item
+exports.addCost = async (req, res) => {
+  console.log("Received POST request data:", req.body);
+
+  try {
+    const { description, category, userid, sum } = req.body;
+    // if date not inserted in the query, use the current time date
+    const date = req.body.date || new Date();
+
+    if (!description || !category || !userid || !sum) {
+      return res.status(400).json({ error: "Missing required fields: description, category, userid, or sum" });
+    }
+
+    const cost = new Cost({ description, category, userid, sum, date });
+    const savedCost = await cost.save();
+
+    res.status(201).json(savedCost);
+  } catch (error) {
+    console.error("Error adding cost item:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get Monthly Report
+exports.getMonthlyReport = async (req, res) => {
+  const { id, year, month } = req.query;
+  const handler = new ComputedCostHandler();
+
+  try {
+    await handler.loadCosts(id, {
+      date: {
+        // filter by the start and the end of specific month 
+        $gte: new Date(year, month - 1, 1),
+        $lt: new Date(year, month, 1),
+      },
+    });
+
+    const groupedCosts = handler.groupedCosts;
     const response = Object.values(groupedCosts);
 
     res.status(200).json(response);
@@ -70,21 +99,20 @@ exports.getMonthlyReport = async (req, res) => {
   }
 };
 
-
-
 // Get User Details
 exports.getUserDetails = async (req, res) => {
+  const handler = new ComputedCostHandler();
+
   try {
     const user = await User.findOne({ id: req.params.id });
-    const costs = await Cost.find({ userid: req.params.id });
-    const totalCost = costs.reduce((sum, cost) => sum + cost.sum, 0);
+    await handler.loadCosts(req.params.id);
 
     if (user) {
       res.status(200).json({
         first_name: user.first_name,
         last_name: user.last_name,
         id: user.id,
-        total: totalCost,
+        total: handler.totalCost,
       });
     } else {
       res.status(404).json({ error: "User not found" });
