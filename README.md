@@ -66,15 +66,11 @@ This project is a RESTful web service that manages cost tracking for users. It p
    ```bash
    git clone https://github.com/DvirUliel/Backend_Development_Project.git
    
-2. Install dependencies:
+2. Open the terminal in the folder project:
    ```bash
-   npm install
-4. Create a .env file with your MongoDB URI and server port:
-   ```bash
-   MONGO_URI=your_mongo_connection_string
-   PORT=3000
-
-6. Start the server:
+   cd Backend_Development_Project
+   
+3. Start the server:
    ```bash
    npm start
 
