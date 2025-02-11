@@ -17,7 +17,7 @@ const itemsSchema = new mongoose.Schema({
 /**
  * Schema representing a monthly financial report for a user.
  * 
- * @typedef {Object} Report
+ * @typedef {Object} reportModel
  * @property {string} userid - Unique identifier for the user.
  * @property {number} year - The year the report is for.
  * @property {number} month - The month the report is for.
@@ -47,6 +47,6 @@ const reportSchema = new mongoose.Schema({
 
 /**
  * Mongoose model for the Report schema.
- * @type {mongoose.Model<Report>}
+ * @type {mongoose.Model<reportModel>}
  */
-module.exports = mongoose.model('Report', reportSchema);
+module.exports = mongoose.model('reportModel', reportSchema);

@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
  * Mongoose schema for the User model.
  * Represents a user with personal details including name, birthday, and marital status.
  * 
- * @typedef {Object} User
+ * @typedef {Object} userModel
  * @property {string} id - Unique identifier for the user.
  * @property {string} first_name - User's first name.
  * @property {string} last_name - User's last name.
@@ -21,6 +21,6 @@ const userSchema = new mongoose.Schema({
 
 /**
  * Mongoose model for the User schema.
- * @type {mongoose.Model<User>}
+ * @type {mongoose.Model<userModel>}
  */
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('userModel', userSchema);
