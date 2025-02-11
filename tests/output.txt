@@ -1,0 +1,35 @@
+https://cost-manager-api-kd0o.onrender.com
+
+testing getting the about
+-------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/about/
+data.status_code=200
+b'[{"first_name":"mosh","last_name":"israeli"}]'
+data.text=[{"first_name":"mosh","last_name":"israeli"}]
+[{'first_name': 'mosh', 'last_name': 'israeli'}]
+
+
+testing getting the report - 1
+------------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/report/?id=123123&year=2025&month=2
+data.status_code=200
+b'{"userid":"123123","year":2025,"month":2,"costs":[{"food":[],"education":[],"health":[],"housing":[],"sport":[],"_id":"67ab73034ab35bc72e7ac259"}],"_id":"67ab73034ab35bc72e7ac258","createdAt":"2025-02-11T15:55:47.976Z","__v":0}'
+data.text={"userid":"123123","year":2025,"month":2,"costs":[{"food":[],"education":[],"health":[],"housing":[],"sport":[],"_id":"67ab73034ab35bc72e7ac259"}],"_id":"67ab73034ab35bc72e7ac258","createdAt":"2025-02-11T15:55:47.976Z","__v":0}
+
+
+
+testing adding cost item
+----------------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/add/
+data.status_code=201
+b'{"description":"milk 9","category":"food","userid":"123123","sum":8,"date":"2025-02-11T15:55:48.546Z","_id":"67ab73044ab35bc72e7ac25b","__v":0}'
+
+
+testing getting the report - 2
+------------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/report/?id=123123&year=2025&month=2
+data.status_code=200
+b'{"_id":"67ab73034ab35bc72e7ac258","userid":"123123","year":2025,"month":2,"costs":[{"food":[{"description":"milk 9","sum":8,"day":11,"_id":"67ab73044ab35bc72e7ac25f"}],"education":[],"health":[],"housing":[],"sport":[],"_id":"67ab73034ab35bc72e7ac259"}],"createdAt":"2025-02-11T15:55:47.976Z","__v":1}'
+data.text={"_id":"67ab73034ab35bc72e7ac258","userid":"123123","year":2025,"month":2,"costs":[{"food":[{"description":"milk 9","sum":8,"day":11,"_id":"67ab73044ab35bc72e7ac25f"}],"education":[],"health":[],"housing":[],"sport":[],"_id":"67ab73034ab35bc72e7ac259"}],"createdAt":"2025-02-11T15:55:47.976Z","__v":1}
+
+

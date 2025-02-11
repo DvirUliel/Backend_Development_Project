@@ -1,6 +1,6 @@
-const Cost = require('../models/Cost');
-const User = require('../models/User');
-const Report = require('../models/Report');
+const costModel = require('../models/cost');
+const userModel = require('../models/user');
+const reportModel = require('../models/report');
 const { groupCostsByCategory } = require('../utils/groupCosts');
 
 /**
@@ -24,23 +24,18 @@ exports.addCost = async (req, res) => {
     }
 
     // Save the new cost.
-    const cost = new Cost({ description, category, userid, sum, date });
-    const savedCost = await cost.save();
+    const newCost = new costModel({ description, category, userid, sum, date });
+    const savedCost = await newCost.save();
 
     // Extract year and month from the date.
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
     // Check if there's an existing report for the user, year, and month.
-    const existingReport = await Report.findOne({ userid, year, month });
+    const existingReport = await reportModel.findOne({ userid, year, month });
 
     if (existingReport) {
       let categoryData = existingReport.costs[0][category];
-
-      // Initialize the category if it doesn't exist.
-      if (!categoryData) {
-        categoryData = [];
-      }
 
       // Update the report with the new cost.
       console.log("Updating the new cost in the existing report");
@@ -50,13 +45,14 @@ exports.addCost = async (req, res) => {
       await existingReport.save();
       res.status(201).json(savedCost);
     } else {
+      
       // If the report doesn't exist, just return the saved cost.
       console.log("No existing report found, but cost added successfully to the database");
       res.status(201).json(savedCost);
     }
   } catch (error) {
     console.error("Error adding cost item:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 
@@ -70,24 +66,27 @@ exports.getMonthlyReport = async (req, res) => {
   try {
     const { id, year, month } = req.query;
 
-    const parsedYear = parseInt(year, 10);
-    const parsedMonth = parseInt(month, 10);
-
-    if (isNaN(parsedYear) || isNaN(parsedMonth)) {
-      return res.status(400).json({ error: "Invalid year or month" });
-    }
-
+    // Check if all required fields are present.
     if (!id || !year || !month) {
       return res.status(400).json({ error: "Missing required query parameters" });
     }
 
-    let report = await Report.findOne({ userid: id, year: parsedYear, month: parsedMonth });
+    const parsedYear = parseInt(year, 10);
+    const parsedMonth = parseInt(month, 10);
+
+    // Check validation to year and month.
+    if (isNaN(parsedYear) || isNaN(parsedMonth)) {
+      return res.status(400).json({ error: "Invalid year or month" });
+    }
+
+    let report = await reportModel.findOne({ userid: id, year: parsedYear, month: parsedMonth });
     
     if (report) {
       console.log("There is an existing report, loaded from the database");
     } else {
+
       // If the report doesn't exist, look for all costs for the given month and year.
-      const costs = await Cost.find({
+      const costs = await costModel.find({
         userid: id,
         date: {
           $gte: new Date(parsedYear, parsedMonth - 1, 1),
@@ -100,7 +99,7 @@ exports.getMonthlyReport = async (req, res) => {
 
       // Update the report with grouped costs.
       console.log("Creating a new report");
-      report = new Report({
+      report = new reportModel({
         userid: id,
         year: parsedYear,
         month: parsedMonth,
@@ -115,16 +114,14 @@ exports.getMonthlyReport = async (req, res) => {
         ],
       });
       await report.save();
-    
     }
 
     res.status(200).json(report);
   } catch (error) {
     console.error("Error fetching report:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
-
 
 /**
  * Retrieves the user's details and their total cost.
@@ -134,8 +131,8 @@ exports.getMonthlyReport = async (req, res) => {
  */
 exports.getUserDetails = async (req, res) => {
   try {
-    const user = await User.findOne({ id: req.params.id });
-    const costs = await Cost.find({ userid: req.params.id });
+    const user = await userModel.findOne({ id: req.params.id });
+    const costs = await costModel.find({ userid: req.params.id });
     const totalCost = costs.reduce((sum, cost) => sum + cost.sum, 0);
 
     if (user) {
@@ -149,7 +146,7 @@ exports.getUserDetails = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
 
@@ -161,12 +158,12 @@ exports.getUserDetails = async (req, res) => {
  */
 exports.getAbout = async (req, res) => {
   try {
-    const teamMembers = await User.find();
-    res.status(200).json(teamMembers.map(member => ({
-      first_name: member.first_name,
-      last_name: member.last_name,
-    })));
+    const teamMembers = [
+    { first_name: "Dvir", last_name: "Uliel" },
+    { first_name: "Moriya", last_name: "Shalom" }
+  ];
+  res.status(200).json(teamMembers);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };

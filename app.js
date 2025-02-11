@@ -25,8 +25,17 @@ app.use('/api', apiRoutes);
  * Connects to the MongoDB database using the connection string from environment variables.
  * Logs success or error messages based on the connection status.
  */
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    // Handling the connection error by sending a 500 response
+    process.exit(1);  // Terminate the process if DB connection fails
+  }
+}
+
+connectToDatabase();
 
 module.exports = app;
