@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 /**
  * Schema representing an individual cost entry.
  * 
- * @typedef {Object} costModel
+ * @typedef {Object} Cost
  * @property {string} description - Description of the cost item.
  * @property {string} category - Category of the expense (e.g., food, health, housing).
  * @property {string} userid - Unique identifier for the user who made the expense.
@@ -20,6 +20,6 @@ const costSchema = new mongoose.Schema({
 
 /**
  * Mongoose model for the Cost schema.
- * @type {mongoose.Model<costModel>}
+ * @type {mongoose.Model<Cost>}
  */
-module.exports = mongoose.model('costModel', costSchema);
+module.exports = mongoose.model('Cost', costSchema);

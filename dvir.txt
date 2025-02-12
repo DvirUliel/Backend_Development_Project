@@ -1,0 +1,35 @@
+https://cost-manager-api-kd0o.onrender.com
+
+testing getting the about
+-------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/about/
+data.status_code=200
+b'[{"first_name":"Dvir","last_name":"Uliel"},{"first_name":"Moriya","last_name":"Shalom"}]'
+data.text=[{"first_name":"Dvir","last_name":"Uliel"},{"first_name":"Moriya","last_name":"Shalom"}]
+[{'first_name': 'Dvir', 'last_name': 'Uliel'}, {'first_name': 'Moriya', 'last_name': 'Shalom'}]
+
+
+testing getting the report - 1
+------------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/report/?id=123123&year=2025&month=2
+data.status_code=200
+b'{"userid":"123123","year":2025,"month":2,"costs":[{"food":[],"education":[],"health":[],"housing":[],"sport":[],"_id":"67abeecde1a131ca9b346bb4"}],"_id":"67abeecde1a131ca9b346bb3","createdAt":"2025-02-12T00:43:57.630Z","__v":0}'
+data.text={"userid":"123123","year":2025,"month":2,"costs":[{"food":[],"education":[],"health":[],"housing":[],"sport":[],"_id":"67abeecde1a131ca9b346bb4"}],"_id":"67abeecde1a131ca9b346bb3","createdAt":"2025-02-12T00:43:57.630Z","__v":0}
+
+
+
+testing adding cost item
+----------------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/add/
+data.status_code=201
+b'{"description":"milk 9","category":"food","userid":"123123","sum":8,"date":"2025-02-12T00:43:58.397Z","_id":"67abeecee1a131ca9b346bb6","__v":0}'
+
+
+testing getting the report - 2
+------------------------------
+url=https://cost-manager-api-kd0o.onrender.com/api/report/?id=123123&year=2025&month=2
+data.status_code=200
+b'{"_id":"67abeecde1a131ca9b346bb3","userid":"123123","year":2025,"month":2,"costs":[{"food":[{"description":"milk 9","sum":8,"day":12,"_id":"67abeecee1a131ca9b346bba"}],"education":[],"health":[],"housing":[],"sport":[],"_id":"67abeecde1a131ca9b346bb4"}],"createdAt":"2025-02-12T00:43:57.630Z","__v":1}'
+data.text={"_id":"67abeecde1a131ca9b346bb3","userid":"123123","year":2025,"month":2,"costs":[{"food":[{"description":"milk 9","sum":8,"day":12,"_id":"67abeecee1a131ca9b346bba"}],"education":[],"health":[],"housing":[],"sport":[],"_id":"67abeecde1a131ca9b346bb4"}],"createdAt":"2025-02-12T00:43:57.630Z","__v":1}
+
+

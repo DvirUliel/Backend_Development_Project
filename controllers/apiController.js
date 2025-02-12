@@ -1,6 +1,6 @@
-const costModel = require('../models/cost');
-const userModel = require('../models/user');
-const reportModel = require('../models/report');
+const Cost = require('../models/cost');
+const User = require('../models/user');
+const Report = require('../models/report');
 const { groupCostsByCategory } = require('../utils/groupCosts');
 
 /**
@@ -24,7 +24,7 @@ exports.addCost = async (req, res) => {
     }
 
     // Save the new cost.
-    const newCost = new costModel({ description, category, userid, sum, date });
+    const newCost = new Cost({ description, category, userid, sum, date });
     const savedCost = await newCost.save();
 
     // Extract year and month from the date.
@@ -32,7 +32,7 @@ exports.addCost = async (req, res) => {
     const month = date.getMonth() + 1;
 
     // Check if there's an existing report for the user, year, and month.
-    const existingReport = await reportModel.findOne({ userid, year, month });
+    const existingReport = await Report.findOne({ userid, year, month });
 
     if (existingReport) {
       let categoryData = existingReport.costs[0][category];
@@ -45,7 +45,7 @@ exports.addCost = async (req, res) => {
       await existingReport.save();
       res.status(201).json(savedCost);
     } else {
-      
+
       // If the report doesn't exist, just return the saved cost.
       console.log("No existing report found, but cost added successfully to the database");
       res.status(201).json(savedCost);
@@ -79,14 +79,14 @@ exports.getMonthlyReport = async (req, res) => {
       return res.status(400).json({ error: "Invalid year or month" });
     }
 
-    let report = await reportModel.findOne({ userid: id, year: parsedYear, month: parsedMonth });
+    let report = await Report.findOne({ userid: id, year: parsedYear, month: parsedMonth });
     
     if (report) {
       console.log("There is an existing report, loaded from the database");
     } else {
 
       // If the report doesn't exist, look for all costs for the given month and year.
-      const costs = await costModel.find({
+      const costs = await Cost.find({
         userid: id,
         date: {
           $gte: new Date(parsedYear, parsedMonth - 1, 1),
@@ -99,7 +99,7 @@ exports.getMonthlyReport = async (req, res) => {
 
       // Update the report with grouped costs.
       console.log("Creating a new report");
-      report = new reportModel({
+      report = new Report({
         userid: id,
         year: parsedYear,
         month: parsedMonth,
@@ -131,8 +131,8 @@ exports.getMonthlyReport = async (req, res) => {
  */
 exports.getUserDetails = async (req, res) => {
   try {
-    const user = await userModel.findOne({ id: req.params.id });
-    const costs = await costModel.find({ userid: req.params.id });
+    const user = await User.findOne({ id: req.params.id });
+    const costs = await Cost.find({ userid: req.params.id });
     const totalCost = costs.reduce((sum, cost) => sum + cost.sum, 0);
 
     if (user) {
